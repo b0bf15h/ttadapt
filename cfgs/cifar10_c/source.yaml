@@ -1,0 +1,26 @@
+MODEL:
+  ADAPTATION: source
+  ARCH: resnet26_gn
+  #ARCH: Debenedetti2022Light_XCiT-S12
+TEST:
+  BATCH_SIZE: 50
+CORRUPTION:
+  DATASET: cifar10_c
+  SEVERITY:
+    - 5
+  TYPE:
+    - gaussian_noise
+    - shot_noise
+    - impulse_noise
+    - defocus_blur
+    - glass_blur
+    - motion_blur
+    - zoom_blur
+    - snow
+    - frost
+    - fog
+    - brightness
+    - contrast
+    - elastic_transform
+    - pixelate
+    - jpeg_compression
