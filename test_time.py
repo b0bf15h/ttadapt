@@ -112,11 +112,7 @@ def evaluate(description):
         f"The adaptation '{cfg.MODEL.ADAPTATION}' is not supported! Choose from: {available_adaptations}"
     model = ADAPTATION_REGISTRY.get(cfg.MODEL.ADAPTATION)(cfg=cfg, model=base_model, num_classes=num_classes)
     logger.info(f'BASE MODEL STATE DICT NUM KEYS {len(list(base_model.state_dict().keys()))}')
-    # try:
-    #     model = model.model
-    #     logger.info("Using model.model")
-    # except AttributeError:
-    #     model = model
+
     logger.info(f"Successfully prepared test-time adaptation method: {cfg.MODEL.ADAPTATION}")
     
 
@@ -144,10 +140,9 @@ def evaluate(description):
     errs = []
     errs_5 = []
     domain_dict = {}
-    #data = load_cifar10(n_examples=100)
-    data = load_cifar100(100)
+    #data = load_cifar10(n_examples= 100)
+    data = load_cifar100(n_examples= 100)
     epsilons = ['0/255', '2/255', '4/255', '6/255', '8/255', '10/255']
-    #assert cfg.MODEL.ARCH in ['Cui2023Decoupled_WRN-28-10','Debenedetti2022Light_XCiT-S12']
     start_time = time.time()
     # start evaluation
     for i_dom, domain_name in enumerate(domain_seq_loop):
@@ -192,37 +187,21 @@ def evaluate(description):
             if severity == 5 and domain_name != "none":
                 errs_5.append(err)
             logger.info(f"{cfg.CORRUPTION.DATASET} error % [{domain_name}{severity}][#samples={num_samples}]: {err:.2%}")
-            ada = cfg.MODEL.ADAPTATION
-            if cfg.EATA.FISHER_ALPHA == 0.0: 
-                if cfg.MODEL.RESET_AFTER_NUM_UPDATES >1:
-                    ada = 'rdumb'
-                else:
-                    ada = 'eta'
-            else:
-                ada = ada
-            model_name = ada+ '_'+domain_name + '.pth'
-            full_path = os.path.join(cfg.SAVE_DIR, model_name)
 
             json_name = cfg.MODEL.ADAPTATION +'_'+domain_name
-            #linf_aa(model = m, data = data, eps = epsilons, output_dir = cfg.SAVE_DIR, domain = json_name)
     if cfg.MODEL.ADAPTATION =='rotta':
         m= deepcopy(model.model_ema)
         logger.info('USING TEACHER MODEL')
     else:
         logger.info('USING NORMAL MODEL')
         m=deepcopy(model.model)
+    
     end_time = time.time()
     run_time = end_time - start_time
     hours = int(run_time / 3600)
     minutes = int((run_time - hours * 3600) / 60)
     seconds = int(run_time - hours * 3600 - minutes * 60)
     logger.info(f"total run time: {hours}h {minutes}m {seconds}s")
-    if cfg.MODEL.ADAPTATION != 'source':
-        torch.save(m.state_dict(), full_path)
-    elif domain_name =='gaussian_noise':
-        torch.save(m.state_dict(), full_path)
-    else:
-        pass
     if len(errs_5) > 0:
         logger.info(f"mean error: {np.mean(errs):.2%}, mean error at 5: {np.mean(errs_5):.2%}")
     else:
