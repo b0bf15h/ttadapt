@@ -213,4 +213,3 @@ dependencies:
       - yacs==0.1.8
       - yapf==0.31.0
       - yattag==1.14.0
-prefix: /home/bob/anaconda3/envs/tta
